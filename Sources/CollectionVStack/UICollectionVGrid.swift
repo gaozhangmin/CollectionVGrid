@@ -3,6 +3,7 @@ import OrderedCollections
 import SwiftUI
 
 // TODO: sections of items?
+// TODO: animation on layout change parameter
 
 public class UICollectionVGrid<Element: Hashable>: UIView,
     UICollectionViewDataSource,
