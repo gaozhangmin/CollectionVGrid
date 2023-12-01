@@ -3,7 +3,8 @@ import OrderedCollections
 import SwiftUI
 
 // TODO: sections of items?
-// TODO: animation on layout change parameter
+
+// MARK: UICollectionVGrid
 
 public class UICollectionVGrid<Element: Hashable>: UIView,
     UICollectionViewDataSource,
@@ -78,6 +79,19 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         return collectionView
     }()
 
+    // MARK: layoutSubviews
+
+    override public func layoutSubviews() {
+        super.layoutSubviews()
+
+        itemSize = nil
+        update(with: data, layout: layout)
+
+        collectionView.performBatchUpdates {
+            collectionView.flowLayout.invalidateLayout()
+        }
+    }
+
     // MARK: update
 
     func update(
@@ -106,7 +120,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         if layout.wrappedValue != currentLayout {
             currentLayout = layout.wrappedValue
 
-            self.itemSize = nil
+            itemSize = nil
 
             collectionView.flowLayout.sectionInset = layout.wrappedValue.insets.asUIEdgeInsets
             collectionView.flowLayout.minimumLineSpacing = layout.wrappedValue.lineSpacing
@@ -159,6 +173,15 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         return cell
     }
 
+    // MARK: UICollectionViewDelegate
+
+    // required for tvOS
+    public func collectionView(_ collectionView: UICollectionView, canFocusItemAt indexPath: IndexPath) -> Bool {
+        false
+    }
+
+    // MARK: UICollectionViewDelegateFlowLayout
+
     public func collectionView(
         _ collectionView: UICollectionView,
         layout collectionViewLayout: UICollectionViewLayout,
@@ -168,7 +191,6 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         if let itemSize {
             return itemSize
         } else {
-
             let width: CGFloat = switch layout.wrappedValue.layoutType {
             case .columns:
                 itemWidth(columns: layout.wrappedValue.layoutValue)
@@ -176,17 +198,9 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
                 itemWidth(minWidth: layout.wrappedValue.layoutValue)
             }
 
-            let s = singleItemSize(width: width)
-            itemSize = s
-            return s
+            itemSize = singleItemSize(width: width)
+            return itemSize
         }
-    }
-
-    // MARK: UICollectionViewDelegate
-
-    // required for tvOS
-    public func collectionView(_ collectionView: UICollectionView, canFocusItemAt indexPath: IndexPath) -> Bool {
-        false
     }
 
     // MARK: UIScrollViewDelegate

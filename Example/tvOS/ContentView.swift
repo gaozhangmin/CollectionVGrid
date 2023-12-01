@@ -6,20 +6,54 @@ func colorWheel(radius: Int) -> Color {
     Color(hue: Double(radius) / 360, saturation: 1, brightness: 1)
 }
 
+enum GridType: Equatable {
+    case grid
+    case list
+
+    var layout: CollectionVGridLayout {
+        switch self {
+        case .grid:
+            .columns(7, insets: .init(50), itemSpacing: 50, lineSpacing: 50)
+        case .list:
+            .columns(1)
+        }
+    }
+}
+
 struct ContentView: View {
 
     @State
-    var colors = OrderedSet((0 ..< 360).map { colorWheel(radius: $0) })
+    var colors = OrderedSet(0 ..< 360)
+    @State
+    var layout: CollectionVGridLayout = .columns(7, insets: .init(50), itemSpacing: 50, lineSpacing: 50)
+    @State
+    var gridType: GridType = .grid
 
     var body: some View {
         CollectionVGrid(
             $colors,
-            layout: .columns(7, insets: .init(50), itemSpacing: 50, lineSpacing: 50)
+            layout: $layout
         ) { color in
-            Button {} label: {
-                color
-                    .aspectRatio(2 / 3, contentMode: .fill)
-                    .cornerRadius(5)
+            Button {
+                switch gridType {
+                case .grid:
+                    gridType = .list
+                    layout = gridType.layout
+                case .list:
+                    gridType = .grid
+                    layout = gridType.layout
+                }
+            } label: {
+                switch gridType {
+                case .grid:
+                    colorWheel(radius: color)
+                        .aspectRatio(2 / 3, contentMode: .fill)
+                        .cornerRadius(5)
+                case .list:
+                    colorWheel(radius: color)
+                        .frame(height: 100)
+                        .cornerRadius(5)
+                }
             }
             .buttonStyle(.card)
         }
