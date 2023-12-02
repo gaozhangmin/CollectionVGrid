@@ -35,7 +35,7 @@ public struct CollectionVGridLayout: Equatable {
 
     public static func columns(
         _ columns: Int,
-        insets: EdgeInsets = .init(10),
+        insets: EdgeInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10),
         itemSpacing: CGFloat = 10,
         lineSpacing: CGFloat = 10
     ) -> CollectionVGridLayout {
@@ -50,7 +50,7 @@ public struct CollectionVGridLayout: Equatable {
 
     public static func minWidth(
         _ minWidth: CGFloat,
-        insets: EdgeInsets = .init(10),
+        insets: EdgeInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10),
         itemSpacing: CGFloat = 10,
         lineSpacing: CGFloat = 10
     ) -> CollectionVGridLayout {

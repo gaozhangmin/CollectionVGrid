@@ -66,6 +66,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         collectionView.register(HostingCollectionViewCell.self, forCellWithReuseIdentifier: HostingCollectionViewCell.reuseIdentifier)
         collectionView.dataSource = self
         collectionView.delegate = self
+        collectionView.alwaysBounceVertical = true
 
         addSubview(collectionView)
 

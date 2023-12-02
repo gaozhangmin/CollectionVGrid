@@ -12,7 +12,7 @@ func * (lhs: CGSize, rhs: CGFloat) -> CGSize {
 
 // MARK: EdgeInsets
 
-public extension EdgeInsets {
+extension EdgeInsets {
 
     var asUIEdgeInsets: UIEdgeInsets {
         .init(
