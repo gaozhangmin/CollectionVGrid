@@ -3,6 +3,9 @@ import OrderedCollections
 import SwiftUI
 
 // TODO: sections of items?
+// TODO: customize layout change animation
+// TODO: row separators?
+// TODO: figure out refreshable
 
 // MARK: UICollectionVGrid
 
@@ -33,6 +36,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         onReachedBottomEdgeOffset: CGFloat,
         onReachedTopEdge: @escaping () -> Void,
         onReachedTopEdgeOffset: CGFloat,
+        proxy: CollectionVGridProxy<Element>?,
         viewProvider: @escaping (Element) -> any View
     ) {
         self.currentHashes = []
@@ -47,6 +51,10 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         self.viewProvider = viewProvider
 
         super.init(frame: .zero)
+
+        if let proxy {
+            proxy.collectionVGrid = self
+        }
     }
 
     @available(*, unavailable)
@@ -95,6 +103,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
     // MARK: update
 
+    // TODO: this seems to be called a lot when nothing changes
     func update(
         with newData: Binding<OrderedSet<Element>>,
         layout: Binding<CollectionVGridLayout>
@@ -110,10 +119,12 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
             section: 0
         )
 
-        data = newData
+        if !changes.isEmpty {
+            data = newData
 
-        collectionView.reload(using: changes) { _ in
-            self.currentHashes = newHashes
+            collectionView.reload(using: changes) { _ in
+                self.currentHashes = newHashes
+            }
         }
 
         // layout
@@ -130,29 +141,34 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
             // little animation to make instant change a little prettier
             // TODO: - figure out cell size animation if desired
 
-            guard let snapshot = collectionView.snapshotView(afterScreenUpdates: false) else {
-                collectionView.reloadData()
-                return
-            }
+            snapshotReload()
+        }
+    }
 
-            addSubview(snapshot)
+    func snapshotReload() {
 
-            NSLayoutConstraint.activate([
-                snapshot.topAnchor.constraint(equalTo: topAnchor),
-                snapshot.bottomAnchor.constraint(equalTo: bottomAnchor),
-                snapshot.leadingAnchor.constraint(equalTo: leadingAnchor),
-                snapshot.trailingAnchor.constraint(equalTo: trailingAnchor),
-            ])
-
-            collectionView.alpha = 0
+        guard let snapshot = collectionView.snapshotView(afterScreenUpdates: false) else {
             collectionView.reloadData()
+            return
+        }
 
-            UIView.animate(withDuration: 0.2) {
-                snapshot.alpha = 0
-                self.collectionView.alpha = 1
-            } completion: { _ in
-                snapshot.removeFromSuperview()
-            }
+        addSubview(snapshot)
+
+        NSLayoutConstraint.activate([
+            snapshot.topAnchor.constraint(equalTo: topAnchor),
+            snapshot.bottomAnchor.constraint(equalTo: bottomAnchor),
+            snapshot.leadingAnchor.constraint(equalTo: leadingAnchor),
+            snapshot.trailingAnchor.constraint(equalTo: trailingAnchor),
+        ])
+
+        collectionView.alpha = 0
+        collectionView.reloadData()
+
+        UIView.animate(withDuration: 0.1) {
+            snapshot.alpha = 0
+            self.collectionView.alpha = 1
+        } completion: { _ in
+            snapshot.removeFromSuperview()
         }
     }
 
@@ -208,10 +224,13 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
 
+        guard scrollView.contentSize.height > 0 else { return }
+
         // bottom edge
 
-        let reachBottomPosition = scrollView.contentSize.height - scrollView.bounds.height - onReachedBottomEdgeOffset
-        let reachedBottom = scrollView.contentOffset.y >= reachBottomPosition
+        let reachBottomPosition = scrollView.contentSize.height - onReachedBottomEdgeOffset
+        let reachedBottom = scrollView.contentOffset.y + scrollView.bounds.height >= reachBottomPosition &&
+            scrollView.contentOffset.y > 0
 
         if reachedBottom {
             if !onReachedEdgeStore.contains(.bottom) {
@@ -243,12 +262,10 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
         guard !data.wrappedValue.isEmpty else { return .init(width: width, height: 0) }
 
-        let view: AnyView
-
-        if width > 0 {
-            view = AnyView(viewProvider(data.wrappedValue[0]).frame(width: width))
+        let view: AnyView = if width > 0 {
+            AnyView(viewProvider(data.wrappedValue[0]).frame(width: width))
         } else {
-            view = AnyView(viewProvider(data.wrappedValue[0]))
+            AnyView(viewProvider(data.wrappedValue[0]))
         }
 
         let singleItem = UIHostingController(rootView: view)

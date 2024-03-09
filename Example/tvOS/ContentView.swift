@@ -6,6 +6,18 @@ func colorWheel(radius: Int) -> Color {
     Color(hue: Double(radius) / 360, saturation: 1, brightness: 1)
 }
 
+extension EdgeInsets {
+
+    init(_ constant: CGFloat) {
+        self.init(
+            top: constant,
+            leading: constant,
+            bottom: constant,
+            trailing: constant
+        )
+    }
+}
+
 enum GridType: Equatable {
     case grid
     case list
@@ -13,7 +25,7 @@ enum GridType: Equatable {
     var layout: CollectionVGridLayout {
         switch self {
         case .grid:
-            .columns(7, insets: .init(50), itemSpacing: 50, lineSpacing: 50)
+            .columns(6, insets: .init(50), itemSpacing: 50, lineSpacing: 50)
         case .list:
             .columns(1)
         }
@@ -23,9 +35,9 @@ enum GridType: Equatable {
 struct ContentView: View {
 
     @State
-    var colors = OrderedSet(0 ..< 360)
+    var colors = OrderedSet(0 ..< 36)
     @State
-    var layout: CollectionVGridLayout = .columns(7, insets: .init(50), itemSpacing: 50, lineSpacing: 50)
+    var layout: CollectionVGridLayout = .columns(6, insets: .init(50), itemSpacing: 50, lineSpacing: 50)
     @State
     var gridType: GridType = .grid
 

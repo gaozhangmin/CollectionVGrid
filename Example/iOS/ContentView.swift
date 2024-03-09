@@ -2,43 +2,66 @@ import CollectionVGrid
 import OrderedCollections
 import SwiftUI
 
-func colorWheel(radius: Int) -> Color {
-    Color(hue: Double(radius) / 360, saturation: 1, brightness: 1)
-}
-
 struct ContentView: View {
 
     @State
     var colors = OrderedSet((0 ..< 360).map { colorWheel(radius: $0) })
-
     @State
-    var layout: CollectionVGridLayout = .columns(6)
-
+    var orientation: LayoutOrientation = .landscape
     @State
-    var columnCount = 3
+    var layout: LayoutType = .grid
+    @State
+    var listRowContentWidth: CGFloat = 0
+    @State
+    var vGridLayout: CollectionVGridLayout = .columns(3)
+
+    @StateObject
+    var proxy = CollectionVGridProxy<Color>()
 
     var body: some View {
         NavigationView {
             CollectionVGrid(
                 $colors,
-                layout: $layout
+                layout: $vGridLayout
             ) { color in
-                color
-                    .aspectRatio(1.77, contentMode: .fill)
-                    .cornerRadius(5)
+                switch layout {
+                case .grid:
+                    GridItem(color: color, orientation: orientation)
+                case .list:
+                    ListRow(color: color, orientation: orientation)
+                }
             }
+            .proxy(proxy)
+            .ignoresSafeArea(edges: .bottom)
             .navigationTitle("Test")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        columnCount += 1
-                        layout = .columns((columnCount % 4) + 3)
-                    } label: {
-                        Text("Toggle")
-                    }
+                    LayoutMenu(orientation: $orientation, layout: $layout)
                 }
             }
         }
         .navigationViewStyle(.stack)
+        .onChange(of: orientation) { newValue in
+            switch (newValue, layout) {
+            case (.landscape, .grid):
+                vGridLayout = .columns(3)
+            case (.portrait, .grid):
+                vGridLayout = .columns(4)
+            case (_, .list):
+                proxy.layout()
+                vGridLayout = .columns(1, insets: .zero, itemSpacing: 0, lineSpacing: 0)
+            }
+        }
+        .onChange(of: layout) { newValue in
+            switch (orientation, newValue) {
+            case (.landscape, .grid):
+                vGridLayout = .columns(3)
+            case (.portrait, .grid):
+                vGridLayout = .columns(4)
+            case (_, .list):
+                vGridLayout = .columns(1, insets: .zero, itemSpacing: 0, lineSpacing: 0)
+            }
+        }
     }
 }

@@ -11,6 +11,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
     var onReachedBottomEdgeOffset: CGFloat
     var onReachedTopEdge: () -> Void
     var onReachedTopEdgeOffset: CGFloat
+    var proxy: CollectionVGridProxy<Element>?
     let viewProvider: (Element) -> any View
 
     init(
@@ -39,6 +40,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
             onReachedBottomEdgeOffset: onReachedBottomEdgeOffset,
             onReachedTopEdge: onReachedTopEdge,
             onReachedTopEdgeOffset: onReachedTopEdgeOffset,
+            proxy: proxy,
             viewProvider: viewProvider
         )
     }
