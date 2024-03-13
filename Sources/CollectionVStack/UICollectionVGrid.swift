@@ -4,7 +4,6 @@ import SwiftUI
 
 // TODO: sections of items?
 // TODO: customize layout change animation
-// TODO: row separators?
 // TODO: figure out refreshable
 
 // MARK: UICollectionVGrid

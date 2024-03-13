@@ -23,7 +23,7 @@ struct LayoutMenu: View {
     }
 
     var body: some View {
-        Menu("Layout") {
+        Menu("Layout", systemImage: "ellipsis.circle.fill") {
             Section("Orientation") {
                 Button {
                     orientation = .landscape

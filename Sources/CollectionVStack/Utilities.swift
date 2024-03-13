@@ -61,17 +61,6 @@ extension UIEdgeInsets {
     }
 }
 
-// MARK: UIViewRepresentable
-
-extension UIViewRepresentable {
-
-    func copy<Value>(modifying keyPath: WritableKeyPath<Self, Value>, to newValue: Value) -> Self {
-        var copy = self
-        copy[keyPath: keyPath] = newValue
-        return copy
-    }
-}
-
 // MARK: View
 
 extension View {

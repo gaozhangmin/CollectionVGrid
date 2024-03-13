@@ -33,7 +33,7 @@ struct ContentView: View {
             }
             .proxy(proxy)
             .ignoresSafeArea(edges: .bottom)
-            .navigationTitle("Test")
+            .navigationTitle("CollectionVGrid")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
