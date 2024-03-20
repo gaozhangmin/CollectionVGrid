@@ -14,6 +14,7 @@
 		E14B26B02B15B30800330583 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14B26AF2B15B30800330583 /* iOSApp.swift */; };
 		E14B26B22B15B30800330583 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14B26B12B15B30800330583 /* ContentView.swift */; };
 		E14B26B42B15B30900330583 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E14B26B32B15B30900330583 /* Assets.xcassets */; };
+		E172D3AB2BAB877C007B4647 /* OnEdgeColorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E172D3AA2BAB877C007B4647 /* OnEdgeColorView.swift */; };
 		E1D670E52B193C69006161A9 /* CollectionVGrid in Frameworks */ = {isa = PBXBuildFile; productRef = E1D670E42B193C69006161A9 /* CollectionVGrid */; };
 		E1D670ED2B193C8D006161A9 /* tvOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D670EC2B193C8D006161A9 /* tvOSApp.swift */; };
 		E1D670EF2B193C8D006161A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D670EE2B193C8D006161A9 /* ContentView.swift */; };
@@ -30,6 +31,7 @@
 		E14B26AF2B15B30800330583 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		E14B26B12B15B30800330583 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E14B26B32B15B30900330583 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E172D3AA2BAB877C007B4647 /* OnEdgeColorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnEdgeColorView.swift; sourceTree = "<group>"; };
 		E1D670EA2B193C8D006161A9 /* tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tvOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1D670EC2B193C8D006161A9 /* tvOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tvOSApp.swift; sourceTree = "<group>"; };
 		E1D670EE2B193C8D006161A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 				E11434A12B9B92D300D087ED /* GridItem.swift */,
 				E114349B2B9B8DE700D087ED /* LayoutMenu.swift */,
 				E114349F2B9B928800D087ED /* ListRow.swift */,
+				E172D3AA2BAB877C007B4647 /* OnEdgeColorView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -215,6 +218,7 @@
 			files = (
 				E11434A22B9B92D300D087ED /* GridItem.swift in Sources */,
 				E14B26B22B15B30800330583 /* ContentView.swift in Sources */,
+				E172D3AB2BAB877C007B4647 /* OnEdgeColorView.swift in Sources */,
 				E114349C2B9B8DE700D087ED /* LayoutMenu.swift in Sources */,
 				E114349E2B9B915A00D087ED /* Utilities.swift in Sources */,
 				E14B26B02B15B30800330583 /* iOSApp.swift in Sources */,

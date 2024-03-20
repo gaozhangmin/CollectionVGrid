@@ -8,20 +8,20 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
     var data: Binding<OrderedSet<Element>>
     var layout: Binding<CollectionVGridLayout>
     var onReachedBottomEdge: () -> Void
-    var onReachedBottomEdgeOffset: CGFloat
+    var onReachedBottomEdgeOffset: CollectionVGridEdgeOffset
     var onReachedTopEdge: () -> Void
-    var onReachedTopEdgeOffset: CGFloat
+    var onReachedTopEdgeOffset: CollectionVGridEdgeOffset
     var proxy: CollectionVGridProxy<Element>?
-    let viewProvider: (Element) -> any View
+    let viewProvider: (Element, CollectionVGridLocation) -> any View
 
     init(
         data: Binding<OrderedSet<Element>>,
         layout: Binding<CollectionVGridLayout>,
         onReachedBottomEdge: @escaping () -> Void = {},
-        onReachedBottomEdgeOffset: CGFloat = 0,
+        onReachedBottomEdgeOffset: CollectionVGridEdgeOffset = .offset(0),
         onReachedTopEdge: @escaping () -> Void = {},
-        onReachedTopEdgeOffset: CGFloat = 0,
-        @ViewBuilder viewProvider: @escaping (Element) -> any View
+        onReachedTopEdgeOffset: CollectionVGridEdgeOffset = .offset(0),
+        @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
         self.data = data
         self.layout = layout

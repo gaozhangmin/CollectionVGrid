@@ -5,6 +5,7 @@ import SwiftUI
 // TODO: sections of items?
 // TODO: customize layout change animation
 // TODO: figure out refreshable
+// TODO: infinite? (like CollectionHStack carousel)
 
 // MARK: UICollectionVGrid
 
@@ -14,17 +15,18 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
     UICollectionViewDelegateFlowLayout
 {
 
+    private var columns: Int
     private var currentHashes: [Int]
     private var currentLayout: CollectionVGridLayout
     private var data: Binding<OrderedSet<Element>>
     private var itemSize: CGSize!
     private var layout: Binding<CollectionVGridLayout>
     private let onReachedBottomEdge: () -> Void
-    private let onReachedBottomEdgeOffset: CGFloat
+    private let onReachedBottomEdgeOffset: CollectionVGridEdgeOffset
     private let onReachedTopEdge: () -> Void
-    private let onReachedTopEdgeOffset: CGFloat
+    private let onReachedTopEdgeOffset: CollectionVGridEdgeOffset
     private var onReachedEdgeStore: Set<Edge>
-    private let viewProvider: (Element) -> any View
+    private let viewProvider: (Element, CollectionVGridLocation) -> any View
 
     // MARK: init
 
@@ -32,12 +34,13 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         data: Binding<OrderedSet<Element>>,
         layout: Binding<CollectionVGridLayout>,
         onReachedBottomEdge: @escaping () -> Void,
-        onReachedBottomEdgeOffset: CGFloat,
+        onReachedBottomEdgeOffset: CollectionVGridEdgeOffset,
         onReachedTopEdge: @escaping () -> Void,
-        onReachedTopEdgeOffset: CGFloat,
+        onReachedTopEdgeOffset: CollectionVGridEdgeOffset,
         proxy: CollectionVGridProxy<Element>?,
-        viewProvider: @escaping (Element) -> any View
+        viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
+        self.columns = 1
         self.currentHashes = []
         self.currentLayout = layout.wrappedValue
         self.data = data
@@ -185,7 +188,8 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         ) as! HostingCollectionViewCell
 
         let item = data.wrappedValue[indexPath.row % data.wrappedValue.count]
-        cell.setupHostingView(with: viewProvider(item))
+        let location = CollectionVGridLocation(column: indexPath.row % columns, row: indexPath.row / columns)
+        cell.setupHostingView(with: viewProvider(item, location))
         return cell
     }
 
@@ -207,11 +211,17 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         if let itemSize {
             return itemSize
         } else {
-            let width: CGFloat = switch layout.wrappedValue.layoutType {
+            let width: CGFloat
+
+            switch layout.wrappedValue.layoutType {
             case .columns:
-                itemWidth(columns: layout.wrappedValue.layoutValue)
+                let itemWidth = itemWidth(columns: layout.wrappedValue.layoutValue)
+                width = itemWidth.width
+                columns = itemWidth.columns
             case .minWidth:
-                itemWidth(minWidth: layout.wrappedValue.layoutValue)
+                let itemWidth = itemWidth(minWidth: layout.wrappedValue.layoutValue)
+                width = itemWidth.width
+                columns = itemWidth.columns
             }
 
             itemSize = singleItemSize(width: width)
@@ -225,25 +235,30 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
         guard scrollView.contentSize.height > 0 else { return }
 
-        // bottom edge
-
-        let reachBottomPosition = scrollView.contentSize.height - onReachedBottomEdgeOffset
-        let reachedBottom = scrollView.contentOffset.y + scrollView.bounds.height >= reachBottomPosition &&
-            scrollView.contentOffset.y > 0
-
-        if reachedBottom {
-            if !onReachedEdgeStore.contains(.bottom) {
-                onReachedEdgeStore.insert(.bottom)
-                onReachedBottomEdge()
-            }
-        } else {
-            onReachedEdgeStore.remove(.bottom)
-        }
-
         // top edge
 
-        let reachTopPosition = onReachedTopEdgeOffset
-        let reachedTop = scrollView.contentOffset.y <= reachTopPosition
+        handleReachedTopEdge(with: scrollView.contentOffset.y)
+
+        // bottom edge
+
+        handleReachedBottomEdge(with: scrollView.contentOffset.y)
+    }
+
+    private func handleReachedTopEdge(with contentOffset: CGFloat) {
+
+        let reachedTop: Bool
+
+        switch onReachedTopEdgeOffset {
+        case let .offset(offset):
+            reachedTop = collectionView.contentOffset.y <= offset
+        case let .rows(rows):
+            let minIndexPath = collectionView
+                .indexPathsForVisibleItems
+                .map(\.row)
+                .min() ?? Int.max
+
+            reachedTop = minIndexPath <= rows * columns - 1
+        }
 
         if reachedTop {
             if !onReachedEdgeStore.contains(.top) {
@@ -255,6 +270,34 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         }
     }
 
+    private func handleReachedBottomEdge(with contentOffset: CGFloat) {
+
+        let reachedBottom: Bool
+
+        switch onReachedBottomEdgeOffset {
+        case let .offset(offset):
+            let reachBottomPosition = collectionView.contentSize.height - offset
+            reachedBottom = collectionView.contentOffset.y + collectionView.bounds.height >= reachBottomPosition &&
+                collectionView.contentOffset.y > 0
+        case let .rows(rows):
+            let maxIndexPath = collectionView
+                .indexPathsForVisibleItems
+                .map(\.row)
+                .max() ?? Int.min
+
+            reachedBottom = maxIndexPath >= currentHashes.count - columns * rows
+        }
+
+        if reachedBottom {
+            if !onReachedEdgeStore.contains(.bottom) {
+                onReachedEdgeStore.insert(.bottom)
+                onReachedBottomEdge()
+            }
+        } else {
+            onReachedEdgeStore.remove(.bottom)
+        }
+    }
+
     // MARK: item sizing
 
     private func singleItemSize(width: CGFloat) -> CGSize {
@@ -262,9 +305,9 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         guard !data.wrappedValue.isEmpty else { return .init(width: width, height: 0) }
 
         let view: AnyView = if width > 0 {
-            AnyView(viewProvider(data.wrappedValue[0]).frame(width: width))
+            AnyView(viewProvider(data.wrappedValue[0], .init(column: -1, row: -1)).frame(width: width))
         } else {
-            AnyView(viewProvider(data.wrappedValue[0]))
+            AnyView(viewProvider(data.wrappedValue[0], .init(column: -1, row: -1)))
         }
 
         let singleItem = UIHostingController(rootView: view)
@@ -275,7 +318,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
     }
 
     /// Precondition: columns > 0
-    private func itemWidth(columns: CGFloat, trailingInset: CGFloat = 0) -> CGFloat {
+    private func itemWidth(columns: CGFloat, trailingInset: CGFloat = 0) -> (width: CGFloat, columns: Int) {
 
         precondition(columns > 0, "Given `columns` is less than or equal to 0")
 
@@ -293,11 +336,11 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         let itemSpacing = itemSpaces * collectionView.flowLayout.minimumInteritemSpacing
         let totalNegative = sectionInsets + itemSpacing + trailingInset
 
-        return (collectionView.frame.width - totalNegative) / columns
+        return ((collectionView.frame.width - totalNegative) / columns, Int(columns))
     }
 
     /// Precondition: minWidth > 0
-    private func itemWidth(minWidth: CGFloat) -> CGFloat {
+    private func itemWidth(minWidth: CGFloat) -> (width: CGFloat, columns: Int) {
 
         precondition(minWidth > 0, "Given `minWidth` is less than or equal to 0")
 
