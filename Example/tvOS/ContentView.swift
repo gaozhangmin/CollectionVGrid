@@ -69,10 +69,10 @@ struct ContentView: View {
             }
             .buttonStyle(.card)
         }
-        .onReachedBottomEdge(offset: 100) {
+        .onReachedBottomEdge(offset: .offset(100)) {
             print("Reached bottom")
         }
-        .onReachedTopEdge(offset: 100) {
+        .onReachedTopEdge(offset: .offset(100)) {
             print("Reached top")
         }
         .ignoresSafeArea()

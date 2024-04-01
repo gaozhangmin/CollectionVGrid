@@ -84,11 +84,13 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         collectionView.delegate = self
         collectionView.alwaysBounceVertical = true
         
+        #if os(iOS)
         if let _ = refreshAction {
             let control = UIRefreshControl()
             control.addTarget(self, action: #selector(onRefresh), for: .valueChanged)
             collectionView.refreshControl = control
         }
+        #endif
 
         addSubview(collectionView)
 
@@ -102,6 +104,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         return collectionView
     }()
     
+    #if os(iOS)
     @objc
     private func onRefresh(control: UIRefreshControl) {
         control.beginRefreshing()
@@ -114,6 +117,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
             }
         }
     }
+    #endif
 
     // MARK: layoutSubviews
 
