@@ -27,6 +27,8 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
     private let onReachedTopEdgeOffset: CollectionVGridEdgeOffset
     private var onReachedEdgeStore: Set<Edge>
     private let viewProvider: (Element, CollectionVGridLocation) -> any View
+    
+    private let refreshAction: RefreshAction?
 
     // MARK: init
 
@@ -38,7 +40,9 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         onReachedTopEdge: @escaping () -> Void,
         onReachedTopEdgeOffset: CollectionVGridEdgeOffset,
         proxy: CollectionVGridProxy<Element>?,
-        viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
+        viewProvider: @escaping (Element, CollectionVGridLocation) -> any View,
+        
+        refreshAction: RefreshAction?
     ) {
         self.columns = 1
         self.currentHashes = []
@@ -51,6 +55,8 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         self.onReachedTopEdgeOffset = onReachedTopEdgeOffset
         self.onReachedEdgeStore = []
         self.viewProvider = viewProvider
+        
+        self.refreshAction = refreshAction
 
         super.init(frame: .zero)
 
@@ -77,6 +83,12 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.alwaysBounceVertical = true
+        
+        if let _ = refreshAction {
+            let control = UIRefreshControl()
+            control.addTarget(self, action: #selector(onRefresh), for: .valueChanged)
+            collectionView.refreshControl = control
+        }
 
         addSubview(collectionView)
 
@@ -89,6 +101,19 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
         return collectionView
     }()
+    
+    @objc
+    private func onRefresh(control: UIRefreshControl) {
+        control.beginRefreshing()
+        
+        Task {
+            await refreshAction?()
+            
+            await MainActor.run {
+                control.endRefreshing()
+            }
+        }
+    }
 
     // MARK: layoutSubviews
 
