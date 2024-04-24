@@ -84,6 +84,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.alwaysBounceVertical = true
+        collectionView.backgroundColor = nil
 
         addSubview(collectionView)
 
