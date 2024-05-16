@@ -6,13 +6,18 @@ import SwiftUI
 // TODO: customize layout change animation?
 // TODO: figure out refreshable
 //       - deadlocks when using environment `RefreshAction`
-// TODO: infinite? (like CollectionHStack carousel)
+// TODO: infinite
+//       - like CollectionHStack carousel
 // TODO: full paging scrolling layout?
 // TODO: Fix TODO data bug below
 //       - if updated too quickly, then currentHashes count != data count and
 //         this will mainly lead to crashes with divide by 0/section count incorrect
 //       - this will probably want to be fixed because `reloadData` has to be used
 //         so this won't allow add/remove/move animations
+// TODO: reverse layout
+//       - bottom to top, like Photos app
+// TODO: prefetching
+//       - like CollectionHStack
 
 // MARK: UICollectionVGrid
 
@@ -133,11 +138,11 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
             data = newData
 
             // TODO: Fix if necessary? See comment at top of file.
-            
+
 //            collectionView.reload(using: changes) { _ in
 //                self.currentHashes = newHashes
 //            }
-            
+
             currentHashes = newHashes
             collectionView.reloadData()
         }
@@ -201,7 +206,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         ) as! HostingCollectionViewCell
 
         // TODO: Fix if necessary? See comment at top of file.
-        
+
         // let item = data.wrappedValue[indexPath.row % data.wrappedValue.count]
         let item = data.wrappedValue[indexPath.row % currentHashes.count]
         let location = CollectionVGridLocation(column: indexPath.row % columns, row: indexPath.row / columns)
@@ -229,14 +234,18 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         } else {
             let width: CGFloat
 
+            // sometimes item width will be too large and overflow row, causing undesirable
+            // layout, probably due to floating point errors. Just floor and can live with
+            // the extra item spacing.
+
             switch layout.wrappedValue.layoutType {
             case .columns:
                 let itemWidth = itemWidth(columns: layout.wrappedValue.layoutValue)
-                width = itemWidth.width
+                width = floor(itemWidth.width)
                 columns = itemWidth.columns
             case .minWidth:
                 let itemWidth = itemWidth(minWidth: layout.wrappedValue.layoutValue)
-                width = itemWidth.width
+                width = floor(itemWidth.width)
                 columns = itemWidth.columns
             }
 
@@ -314,7 +323,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         }
     }
 
-    // MARK: item sizing
+    // MARK: item size
 
     private func singleItemSize(width: CGFloat) -> CGSize {
 
@@ -332,6 +341,8 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         let changeRatio = width / singleItem.view.bounds.size.width
         return singleItem.view.bounds.size * changeRatio
     }
+
+    // MARK: item width
 
     /// Precondition: columns > 0
     private func itemWidth(columns: CGFloat, trailingInset: CGFloat = 0) -> (width: CGFloat, columns: Int) {
