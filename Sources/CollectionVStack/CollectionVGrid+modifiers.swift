@@ -15,4 +15,8 @@ public extension CollectionVGrid {
     func proxy(_ proxy: CollectionVGridProxy<Element>) -> Self {
         copy(modifying: \.proxy, to: proxy)
     }
+
+    func scrollIndicatorsVisible(_ isVisible: Bool = true) -> Self {
+        copy(modifying: \.scrollIndicatorsVisible, to: isVisible)
+    }
 }

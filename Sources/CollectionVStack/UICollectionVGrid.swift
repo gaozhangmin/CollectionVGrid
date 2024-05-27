@@ -38,6 +38,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
     private let onReachedTopEdge: () -> Void
     private let onReachedTopEdgeOffset: CollectionVGridEdgeOffset
     private var onReachedEdgeStore: Set<Edge>
+    private var scrollIndicatorsVisible: Bool
     private let viewProvider: (Element, CollectionVGridLocation) -> any View
 
     // MARK: init
@@ -50,6 +51,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         onReachedTopEdge: @escaping () -> Void,
         onReachedTopEdgeOffset: CollectionVGridEdgeOffset,
         proxy: CollectionVGridProxy<Element>?,
+        scrollIndicatorsVisible: Bool,
         viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
         self.columns = 1
@@ -62,6 +64,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         self.onReachedTopEdge = onReachedTopEdge
         self.onReachedTopEdgeOffset = onReachedTopEdgeOffset
         self.onReachedEdgeStore = []
+        self.scrollIndicatorsVisible = scrollIndicatorsVisible
         self.viewProvider = viewProvider
 
         super.init(frame: .zero)
@@ -90,6 +93,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         collectionView.delegate = self
         collectionView.alwaysBounceVertical = true
         collectionView.backgroundColor = nil
+        collectionView.showsVerticalScrollIndicator = scrollIndicatorsVisible
 
         addSubview(collectionView)
 

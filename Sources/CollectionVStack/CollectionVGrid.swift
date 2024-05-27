@@ -12,6 +12,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
     var onReachedTopEdge: () -> Void
     var onReachedTopEdgeOffset: CollectionVGridEdgeOffset
     var proxy: CollectionVGridProxy<Element>?
+    var scrollIndicatorsVisible: Bool
     let viewProvider: (Element, CollectionVGridLocation) -> any View
 
     init(
@@ -21,6 +22,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
         onReachedBottomEdgeOffset: CollectionVGridEdgeOffset = .offset(0),
         onReachedTopEdge: @escaping () -> Void = {},
         onReachedTopEdgeOffset: CollectionVGridEdgeOffset = .offset(0),
+        scrollIndicatorsVisible: Bool = true,
         @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
         self.data = data
@@ -29,6 +31,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
         self.onReachedBottomEdgeOffset = onReachedBottomEdgeOffset
         self.onReachedTopEdge = onReachedTopEdge
         self.onReachedTopEdgeOffset = onReachedTopEdgeOffset
+        self.scrollIndicatorsVisible = scrollIndicatorsVisible
         self.viewProvider = viewProvider
     }
 
@@ -41,6 +44,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
             onReachedTopEdge: onReachedTopEdge,
             onReachedTopEdgeOffset: onReachedTopEdgeOffset,
             proxy: proxy,
+            scrollIndicatorsVisible: scrollIndicatorsVisible,
             viewProvider: viewProvider
         )
     }
