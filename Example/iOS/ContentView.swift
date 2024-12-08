@@ -1,11 +1,10 @@
 import CollectionVGrid
-import OrderedCollections
 import SwiftUI
 
 struct ContentView: View {
 
     @State
-    var colors = OrderedSet((0 ..< 360).map { colorWheel(radius: $0) })
+    var colors = (0 ..< 360).map { colorWheel(radius: $0) }
     @State
     var orientation: LayoutOrientation = .landscape
     @State
@@ -16,13 +15,14 @@ struct ContentView: View {
     var vGridLayout: CollectionVGridLayout = .columns(3)
 
     @StateObject
-    var proxy = CollectionVGridProxy<Color>()
+    var proxy = CollectionVGridProxy()
 
     var body: some View {
         NavigationView {
             CollectionVGrid(
-                $colors,
-                layout: $vGridLayout
+                uniqueElements: colors,
+                id: \.self,
+                layout: vGridLayout
             ) { color in
                 switch layout {
                 case .grid:
@@ -31,6 +31,7 @@ struct ContentView: View {
                     ListRow(color: color, orientation: orientation)
                 }
             }
+            .scrollIndicatorsVisible(false)
             .proxy(proxy)
             .ignoresSafeArea(edges: .bottom)
             .navigationTitle("CollectionVGrid")

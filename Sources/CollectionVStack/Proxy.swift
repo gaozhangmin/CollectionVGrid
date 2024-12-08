@@ -1,8 +1,8 @@
 import Foundation
 
-public class CollectionVGridProxy<Element: Hashable>: ObservableObject {
+public class CollectionVGridProxy: ObservableObject {
 
-    weak var collectionVGrid: UICollectionVGrid<Element>?
+    weak var collectionVGrid: _UICollectionVGrid?
 
     public init() {
         self.collectionVGrid = nil

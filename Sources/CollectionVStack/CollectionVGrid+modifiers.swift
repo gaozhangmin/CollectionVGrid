@@ -12,7 +12,7 @@ public extension CollectionVGrid {
             .copy(modifying: \.onReachedTopEdgeOffset, to: offset)
     }
 
-    func proxy(_ proxy: CollectionVGridProxy<Element>) -> Self {
+    func proxy(_ proxy: CollectionVGridProxy) -> Self {
         copy(modifying: \.proxy, to: proxy)
     }
 

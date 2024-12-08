@@ -1,5 +1,4 @@
 import DifferenceKit
-import OrderedCollections
 import SwiftUI
 
 // TODO: sections of items?
@@ -10,7 +9,7 @@ import SwiftUI
 //       - like CollectionHStack carousel
 // TODO: full paging scrolling layout?
 // TODO: Fix TODO data bug below
-//       - if updated too quickly, then currentHashes count != data count and
+//       - if updated too quickly, then currentElementIDs count != data count and
 //         this will mainly lead to crashes with divide by 0/section count incorrect
 //       - this will probably want to be fixed because `reloadData` has to be used
 //         so this won't allow add/remove/move animations
@@ -19,20 +18,29 @@ import SwiftUI
 // TODO: prefetching
 //       - like CollectionHStack
 
+public protocol _UICollectionVGrid: UIView {
+
+    func snapshotReload()
+}
+
 // MARK: UICollectionVGrid
 
-public class UICollectionVGrid<Element: Hashable>: UIView,
+public class UICollectionVGrid<Element, Data: Collection, ID: Hashable>:
+    UIView,
+    _UICollectionVGrid,
     UICollectionViewDataSource,
     UICollectionViewDelegate,
     UICollectionViewDelegateFlowLayout
+    where Data.Element == Element, Data.Index == Int
 {
 
+    private var _id: KeyPath<Element, ID>
+
     private var columns: Int
-    private var currentHashes: [Int]
-    private var currentLayout: CollectionVGridLayout
-    private var data: Binding<OrderedSet<Element>>
+    private var currentElementIDHashes: [Int]
+    private var data: Data
     private var itemSize: CGSize!
-    private var layout: Binding<CollectionVGridLayout>
+    private var layout: CollectionVGridLayout
     private let onReachedBottomEdge: () -> Void
     private let onReachedBottomEdgeOffset: CollectionVGridEdgeOffset
     private let onReachedTopEdge: () -> Void
@@ -44,21 +52,22 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
     // MARK: init
 
     public init(
-        data: Binding<OrderedSet<Element>>,
-        layout: Binding<CollectionVGridLayout>,
+        id: KeyPath<Element, ID>,
+        data: Data,
+        layout: CollectionVGridLayout,
         onReachedBottomEdge: @escaping () -> Void,
         onReachedBottomEdgeOffset: CollectionVGridEdgeOffset,
         onReachedTopEdge: @escaping () -> Void,
         onReachedTopEdgeOffset: CollectionVGridEdgeOffset,
-        proxy: CollectionVGridProxy<Element>?,
+        proxy: CollectionVGridProxy?,
         scrollIndicatorsVisible: Bool,
         viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
+        self._id = id
         self.columns = 1
-        self.currentHashes = []
-        self.currentLayout = layout.wrappedValue
-        self.data = data
+        self.currentElementIDHashes = []
         self.layout = layout
+        self.data = data
         self.onReachedBottomEdge = onReachedBottomEdge
         self.onReachedBottomEdgeOffset = onReachedBottomEdgeOffset
         self.onReachedTopEdge = onReachedTopEdge
@@ -82,9 +91,9 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
     private lazy var collectionView: UICollectionView = {
 
         let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.sectionInset = layout.wrappedValue.insets.asUIEdgeInsets
-        flowLayout.minimumLineSpacing = layout.wrappedValue.lineSpacing
-        flowLayout.minimumInteritemSpacing = layout.wrappedValue.itemSpacing
+        flowLayout.sectionInset = layout.insets.asUIEdgeInsets
+        flowLayout.minimumLineSpacing = layout.lineSpacing
+        flowLayout.minimumInteritemSpacing = layout.itemSpacing
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -113,7 +122,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         super.layoutSubviews()
 
         itemSize = nil
-        update(with: data, layout: layout)
+        update(data: data, layout: layout)
 
         collectionView.performBatchUpdates {
             collectionView.flowLayout.invalidateLayout()
@@ -124,17 +133,18 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
     // TODO: this seems to be called a lot when nothing changes
     func update(
-        with newData: Binding<OrderedSet<Element>>,
-        layout: Binding<CollectionVGridLayout>
+        data newData: Data,
+        layout newLayout: CollectionVGridLayout
     ) {
 
         // data
 
-        let newHashes = newData.wrappedValue.map(\.hashValue)
+        let newIDs = newData
+            .map { $0[keyPath: _id].hashValue }
 
         let changes = StagedChangeset(
-            source: currentHashes,
-            target: newHashes,
+            source: currentElementIDHashes,
+            target: newIDs,
             section: 0
         )
 
@@ -144,23 +154,23 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
             // TODO: Fix if necessary? See comment at top of file.
 
 //            collectionView.reload(using: changes) { _ in
-//                self.currentHashes = newHashes
+//                self.currentElementIDHashes = newHashes
 //            }
 
-            currentHashes = newHashes
+            currentElementIDHashes = newIDs
             collectionView.reloadData()
         }
 
         // layout
 
-        if layout.wrappedValue != currentLayout {
-            currentLayout = layout.wrappedValue
+        if newLayout != layout {
+            layout = newLayout
 
             itemSize = nil
 
-            collectionView.flowLayout.sectionInset = layout.wrappedValue.insets.asUIEdgeInsets
-            collectionView.flowLayout.minimumLineSpacing = layout.wrappedValue.lineSpacing
-            collectionView.flowLayout.minimumInteritemSpacing = layout.wrappedValue.itemSpacing
+            collectionView.flowLayout.sectionInset = newLayout.insets.asUIEdgeInsets
+            collectionView.flowLayout.minimumLineSpacing = newLayout.lineSpacing
+            collectionView.flowLayout.minimumInteritemSpacing = newLayout.itemSpacing
 
             // little animation to make instant change a little prettier
             // TODO: - figure out cell size animation if desired
@@ -169,7 +179,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
         }
     }
 
-    func snapshotReload() {
+    public func snapshotReload() {
 
         guard let snapshot = collectionView.snapshotView(afterScreenUpdates: false) else {
             collectionView.reloadData()
@@ -199,7 +209,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
     // MARK: UICollectionViewDataSource
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        currentHashes.count
+        currentElementIDHashes.count
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -211,8 +221,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
         // TODO: Fix if necessary? See comment at top of file.
 
-        // let item = data.wrappedValue[indexPath.row % data.wrappedValue.count]
-        let item = data.wrappedValue[indexPath.row % currentHashes.count]
+        let item = data[indexPath.row % currentElementIDHashes.count]
         let location = CollectionVGridLocation(column: indexPath.row % columns, row: indexPath.row / columns)
         cell.setupHostingView(with: viewProvider(item, location))
         return cell
@@ -242,13 +251,13 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
             // layout, probably due to floating point errors. Just floor and can live with
             // the extra item spacing.
 
-            switch layout.wrappedValue.layoutType {
+            switch layout.layoutType {
             case .columns:
-                let itemWidth = itemWidth(columns: layout.wrappedValue.layoutValue)
+                let itemWidth = itemWidth(columns: layout.layoutValue)
                 width = floor(itemWidth.width)
                 columns = itemWidth.columns
             case .minWidth:
-                let itemWidth = itemWidth(minWidth: layout.wrappedValue.layoutValue)
+                let itemWidth = itemWidth(minWidth: layout.layoutValue)
                 width = floor(itemWidth.width)
                 columns = itemWidth.columns
             }
@@ -314,7 +323,7 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
                 .map(\.row)
                 .max() ?? Int.min
 
-            reachedBottom = maxIndexPath >= currentHashes.count - columns * rows
+            reachedBottom = maxIndexPath >= currentElementIDHashes.count - columns * rows
         }
 
         if reachedBottom {
@@ -331,12 +340,12 @@ public class UICollectionVGrid<Element: Hashable>: UIView,
 
     private func singleItemSize(width: CGFloat) -> CGSize {
 
-        guard !data.wrappedValue.isEmpty else { return .init(width: width, height: 0) }
+        guard !data.isEmpty else { return .init(width: width, height: 0) }
 
         let view: AnyView = if width > 0 {
-            AnyView(viewProvider(data.wrappedValue[0], .init(column: -1, row: -1)).frame(width: width))
+            AnyView(viewProvider(data[0], .init(column: -1, row: -1)).frame(width: width))
         } else {
-            AnyView(viewProvider(data.wrappedValue[0], .init(column: -1, row: -1)))
+            AnyView(viewProvider(data[0], .init(column: -1, row: -1)))
         }
 
         let singleItem = UIHostingController(rootView: view)

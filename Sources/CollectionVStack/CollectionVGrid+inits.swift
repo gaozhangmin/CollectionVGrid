@@ -1,161 +1,81 @@
-import OrderedCollections
 import SwiftUI
 
-// MARK: Binding<OrderedSet>
+// MARK: Collection
 
 public extension CollectionVGrid {
 
     init(
-        _ data: Binding<OrderedSet<Element>>,
-        layout: Binding<CollectionVGridLayout>,
-        @ViewBuilder viewProvider: @escaping (Element) -> any View
-    ) {
-        self.init(
-            data: data,
-            layout: layout,
-            viewProvider: { e, _ in viewProvider(e) }
-        )
-    }
-
-    init(
-        _ data: Binding<OrderedSet<Element>>,
+        uniqueElements: Data,
+        id: KeyPath<Element, ID>,
         layout: CollectionVGridLayout,
-        @ViewBuilder viewProvider: @escaping (Element) -> any View
-    ) {
-        self.init(
-            data: data,
-            layout: .constant(layout),
-            viewProvider: { e, _ in viewProvider(e) }
-        )
-    }
-
-    init(
-        _ data: Binding<OrderedSet<Element>>,
-        layout: Binding<CollectionVGridLayout>,
         @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
         self.init(
-            data: data,
+            id: id,
+            data: uniqueElements,
             layout: layout,
             viewProvider: viewProvider
         )
     }
 
     init(
-        _ data: Binding<OrderedSet<Element>>,
+        uniqueElements: Data,
+        id: KeyPath<Element, ID>,
         layout: CollectionVGridLayout,
-        @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
+        @ViewBuilder viewProvider: @escaping (Element) -> any View
     ) {
         self.init(
-            data: data,
-            layout: .constant(layout),
-            viewProvider: viewProvider
+            id: id,
+            data: uniqueElements,
+            layout: layout,
+            viewProvider: { e, _ in viewProvider(e) }
         )
     }
 }
 
-// MARK: Range
-
-public extension CollectionVGrid where Element == Int {
+public extension CollectionVGrid where Element: Identifiable, ID == Element.ID {
 
     init(
-        _ data: Range<Int>,
-        layout: Binding<CollectionVGridLayout>,
-        @ViewBuilder viewProvider: @escaping (Element) -> any View
-    ) {
-        self.init(
-            data: .constant(OrderedSet(data)),
-            layout: layout,
-            viewProvider: { e, _ in viewProvider(e) }
-        )
-    }
-
-    init(
-        _ data: Range<Int>,
+        uniqueElements: Data,
         layout: CollectionVGridLayout,
-        @ViewBuilder viewProvider: @escaping (Element) -> any View
-    ) {
-        self.init(
-            data: .constant(OrderedSet(data)),
-            layout: .constant(layout),
-            viewProvider: { e, _ in viewProvider(e) }
-        )
-    }
-
-    init(
-        _ data: Range<Int>,
-        layout: Binding<CollectionVGridLayout>,
         @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
         self.init(
-            data: .constant(OrderedSet(data)),
+            id: \.id,
+            data: uniqueElements,
             layout: layout,
             viewProvider: viewProvider
         )
     }
 
     init(
-        _ data: Range<Int>,
+        uniqueElements: Data,
         layout: CollectionVGridLayout,
-        @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
+        @ViewBuilder viewProvider: @escaping (Element) -> any View
     ) {
         self.init(
-            data: .constant(OrderedSet(data)),
-            layout: .constant(layout),
-            viewProvider: viewProvider
+            id: \.id,
+            data: uniqueElements,
+            layout: layout,
+            viewProvider: { e, _ in viewProvider(e) }
         )
     }
 }
 
-// MARK: Sequence
+// MARK: Count
 
-public extension CollectionVGrid {
-
-    init(
-        _ data: some Sequence<Element>,
-        layout: Binding<CollectionVGridLayout>,
-        @ViewBuilder viewProvider: @escaping (Element) -> any View
-    ) {
-        self.init(
-            data: .constant(OrderedSet(data)),
-            layout: layout,
-            viewProvider: { e, _ in viewProvider(e) }
-        )
-    }
+public extension CollectionVGrid where Data == [Element], Element == Int, ID == Int {
 
     init(
-        _ data: some Sequence<Element>,
+        count: Int,
         layout: CollectionVGridLayout,
         @ViewBuilder viewProvider: @escaping (Element) -> any View
     ) {
         self.init(
-            data: .constant(OrderedSet(data)),
-            layout: .constant(layout),
-            viewProvider: { e, _ in viewProvider(e) }
-        )
-    }
-
-    init(
-        _ data: some Sequence<Element>,
-        layout: Binding<CollectionVGridLayout>,
-        @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
-    ) {
-        self.init(
-            data: .constant(OrderedSet(data)),
+            id: \.self,
+            data: Array(0 ..< count),
             layout: layout,
-            viewProvider: viewProvider
-        )
-    }
-
-    init(
-        _ data: some Sequence<Element>,
-        layout: CollectionVGridLayout,
-        @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
-    ) {
-        self.init(
-            data: .constant(OrderedSet(data)),
-            layout: .constant(layout),
-            viewProvider: viewProvider
+            viewProvider: { e, _ in viewProvider(e) }
         )
     }
 }

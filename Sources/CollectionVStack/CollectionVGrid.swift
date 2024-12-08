@@ -1,23 +1,26 @@
-import OrderedCollections
+import DifferenceKit
 import SwiftUI
 
-public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
+public struct CollectionVGrid<Element, Data: Collection, ID: Hashable>: UIViewRepresentable where Data.Element == Element,
+Data.Index == Int {
 
-    public typealias UIViewType = UICollectionVGrid<Element>
+    public typealias UIViewType = UICollectionVGrid<Element, Data, ID>
 
-    var data: Binding<OrderedSet<Element>>
-    var layout: Binding<CollectionVGridLayout>
+    let _id: KeyPath<Element, ID>
+    let data: Data
+    let layout: CollectionVGridLayout
     var onReachedBottomEdge: () -> Void
     var onReachedBottomEdgeOffset: CollectionVGridEdgeOffset
     var onReachedTopEdge: () -> Void
     var onReachedTopEdgeOffset: CollectionVGridEdgeOffset
-    var proxy: CollectionVGridProxy<Element>?
+    var proxy: CollectionVGridProxy?
     var scrollIndicatorsVisible: Bool
     let viewProvider: (Element, CollectionVGridLocation) -> any View
 
     init(
-        data: Binding<OrderedSet<Element>>,
-        layout: Binding<CollectionVGridLayout>,
+        id: KeyPath<Element, ID>,
+        data: Data,
+        layout: CollectionVGridLayout,
         onReachedBottomEdge: @escaping () -> Void = {},
         onReachedBottomEdgeOffset: CollectionVGridEdgeOffset = .offset(0),
         onReachedTopEdge: @escaping () -> Void = {},
@@ -25,6 +28,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
         scrollIndicatorsVisible: Bool = true,
         @ViewBuilder viewProvider: @escaping (Element, CollectionVGridLocation) -> any View
     ) {
+        self._id = id
         self.data = data
         self.layout = layout
         self.onReachedBottomEdge = onReachedBottomEdge
@@ -37,6 +41,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
 
     public func makeUIView(context: Context) -> UIViewType {
         UICollectionVGrid(
+            id: _id,
             data: data,
             layout: layout,
             onReachedBottomEdge: onReachedBottomEdge,
@@ -51,7 +56,7 @@ public struct CollectionVGrid<Element: Hashable>: UIViewRepresentable {
 
     public func updateUIView(_ view: UIViewType, context: Context) {
         view.update(
-            with: data,
+            data: data,
             layout: layout
         )
     }
