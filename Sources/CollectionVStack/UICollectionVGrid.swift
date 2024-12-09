@@ -208,11 +208,17 @@ public class UICollectionVGrid<Element, Data: Collection, ID: Hashable>:
 
     // MARK: UICollectionViewDataSource
 
-    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        numberOfItemsInSection section: Int
+    ) -> Int {
         currentElementIDHashes.count
     }
 
-    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
+    ) -> UICollectionViewCell {
 
         let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: HostingCollectionViewCell.reuseIdentifier,
@@ -230,7 +236,10 @@ public class UICollectionVGrid<Element, Data: Collection, ID: Hashable>:
     // MARK: UICollectionViewDelegate
 
     // required for tvOS
-    public func collectionView(_ collectionView: UICollectionView, canFocusItemAt indexPath: IndexPath) -> Bool {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        canFocusItemAt indexPath: IndexPath
+    ) -> Bool {
         false
     }
 
