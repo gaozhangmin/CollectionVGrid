@@ -13,7 +13,7 @@ Data.Index == Int {
     var headerProvider: () -> any View
     var scrollIndicatorsVisible: Bool
     var viewProvider: (Element, CollectionVGridLocation) -> any View
-    
+
     init(
         id: KeyPath<Element, ID>,
         data: Data,
@@ -31,7 +31,7 @@ Data.Index == Int {
         self.scrollIndicatorsVisible = scrollIndicatorsVisible
         self.viewProvider = viewProvider
     }
-    
+
     public func makeUIView(context: Context) -> UIViewType {
         UICollectionVList(
             id: _id,
@@ -43,7 +43,7 @@ Data.Index == Int {
             viewProvider: viewProvider
         )
     }
-    
+
     public func updateUIView(_ view: UIViewType, context: Context) {
         view.update(data: data)
     }

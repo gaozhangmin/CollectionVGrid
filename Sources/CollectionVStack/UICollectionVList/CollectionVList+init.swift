@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: Collection
 
 public extension CollectionVList {
-    
+
     init(
         uniqueElements: Data,
         id: KeyPath<Element, ID>,
